@@ -1,13 +1,13 @@
 [project]
 name = "image-stitching-app"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "Professional panorama creation with flexible stitching algorithms"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.12",
     "numpy>=2.2.6",
-    "opencv-python>=4.11.0.86",
+    "opencv-contrib-python>=4.11.0.86",
     "pillow>=11.2.1",
     "python-multipart>=0.0.20",
     "uvicorn>=0.34.2",

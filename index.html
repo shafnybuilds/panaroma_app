@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Automated Panorama Creator</title>
+    <title>Professional Panorama Creator</title>
     <style>
         * {
             margin: 0;
@@ -46,6 +46,17 @@
         .header p {
             color: #666;
             font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
         }
 
         .upload-section {
@@ -221,6 +232,7 @@
             text-decoration: none;
             display: inline-block;
             transition: all 0.3s ease;
+            margin: 0 10px;
         }
 
         .download-button:hover {
@@ -238,6 +250,15 @@
             white-space: pre-line;
             font-family: monospace;
             font-size: 0.9rem;
+        }
+
+        .success-message {
+            background: #2ed573;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
         }
 
         .tips {
@@ -262,6 +283,14 @@
             margin-bottom: 8px;
         }
 
+        .advanced-tips {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 0 10px 10px 0;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -281,63 +310,81 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🌄 Automated Panorama Creator</h1>
-            <p>Upload multiple overlapping images to create stunning panoramic views</p>
+            <h1>🌄 Professional Panorama Creator</h1>
+            <p>Advanced image stitching with state-of-the-art algorithms</p>
+            <span class="version-badge">v3.0 Professional</span>
         </div>
 
         <div class="upload-section">
             <div class="file-input-wrapper">
                 <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
                 <label for="fileInput" class="file-input-button">
-                    📸 Select Images (2-10 images)
+                    📸 Select Images (2-8 images for best quality)
                 </label>
             </div>
             <div id="fileList" class="file-list"></div>
         </div>
 
         <button id="stitchButton" class="stitch-button" disabled>
-            🔗 Create Panorama
+            🔗 Create Professional Panorama
         </button>
 
         <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
 
         <div id="progressContainer" class="progress-container">
-            <h3>Processing your panorama...</h3>
+            <h3>🔄 Creating your panorama...</h3>
             <div class="progress-bar">
                 <div id="progressFill" class="progress-fill"></div>
             </div>
-            <p>This may take a few moments depending on image size and count.</p>
+            <p>Using advanced SIFT feature detection and multi-band blending...</p>
         </div>
 
         <div id="resultSection" class="result-section">
-            <h2>🎉 Your Panorama is Ready!</h2>
-            <img id="resultImage" class="result-image" alt="Stitched panorama">
+            <h2>🎉 Your Professional Panorama is Ready!</h2>
+            <img id="resultImage" class="result-image" alt="Professional stitched panorama">
             <br>
-            <a id="downloadButton" class="download-button" download="panorama.jpg">
-                💾 Download Panorama
+            <a id="downloadButton" class="download-button" download="professional_panorama.jpg">
+                💾 Download High Quality
             </a>
+            <button id="createNewButton" class="download-button" onclick="location.reload()">
+                🆕 Create New Panorama
+            </button>
         </div>
 
         <div class="tips">
-            <h3>💡 Tips for Best Results:</h3>
+            <h3>📋 Professional Tips for Best Results:</h3>
             <ul>
-                <li>Take photos with at least 30% overlap between adjacent images</li>
-                <li>Keep the camera level and maintain consistent exposure</li>
-                <li>Avoid moving objects in the overlapping areas</li>
-                <li>Use good lighting conditions for better feature detection</li>
-                <li>Upload images in the order they were taken (left to right)</li>
-                <li>Maximum 10 images per panorama for optimal performance</li>
+                <li><strong>Overlap:</strong> Ensure 40-60% overlap between adjacent images</li>
+                <li><strong>Stability:</strong> Use a tripod or keep the camera as steady as possible</li>
+                <li><strong>Exposure:</strong> Lock exposure settings to avoid brightness variations</li>
+                <li><strong>Focus:</strong> Use manual focus or focus lock</li>
+                <li><strong>Sequence:</strong> Upload images in the order they were taken</li>
+                <li><strong>Limit:</strong> Use 2-8 images for optimal processing speed and quality</li>
+                <li><strong>Resolution:</strong> Higher resolution images produce better results</li>
+            </ul>
+        </div>
+
+        <div class="advanced-tips">
+            <h3>⚡ Advanced Features:</h3>
+            <ul>
+                <li><strong>SIFT Detection:</strong> Industry-standard feature detection for maximum accuracy</li>
+                <li><strong>USAC-MAGSAC:</strong> Robust homography estimation with outlier rejection</li>
+                <li><strong>Multi-band Blending:</strong> Seamless transitions using Laplacian pyramids</li>
+                <li><strong>Automatic Quality Validation:</strong> Ensures only high-quality stitches</li>
+                <li><strong>Professional Post-processing:</strong> Color balance and noise reduction</li>
             </ul>
         </div>
     </div>
 
     <script>
-        class PanoramaStitcher {
+        class ProfessionalPanoramaStitcher {
             constructor() {
                 this.files = [];
-                this.apiUrl = 'http://localhost:8000'; // Change this to your FastAPI server URL
+                this.apiUrl = 'http://localhost:8000';
                 
                 this.initEventListeners();
+                this.checkServerHealth();
             }
 
             initEventListeners() {
@@ -348,20 +395,37 @@
                 stitchButton.addEventListener('click', () => this.stitchImages());
             }
 
+            async checkServerHealth() {
+                try {
+                    const response = await fetch(`${this.apiUrl}/health`);
+                    if (response.ok) {
+                        this.showSuccess('✅ Professional stitching service is ready!');
+                    }
+                } catch (error) {
+                    this.showError('⚠️ Backend service not available. Please start the FastAPI server:\n\nuvicorn app:app --reload');
+                }
+            }
+
             handleFileSelection(event) {
                 const newFiles = Array.from(event.target.files);
                 
+                // Validate file types
+                const validFiles = newFiles.filter(file => file.type.startsWith('image/'));
+                if (validFiles.length !== newFiles.length) {
+                    this.showError('Some files were skipped (not images)');
+                }
+                
                 // Add new files to existing ones (avoid duplicates)
-                newFiles.forEach(file => {
+                validFiles.forEach(file => {
                     if (!this.files.find(f => f.name === file.name && f.size === file.size)) {
                         this.files.push(file);
                     }
                 });
 
-                // Limit to 10 files
-                if (this.files.length > 10) {
-                    this.files = this.files.slice(0, 10);
-                    this.showError('Maximum 10 images allowed. Only first 10 images selected.');
+                // Limit to 8 files for best quality
+                if (this.files.length > 8) {
+                    this.files = this.files.slice(0, 8);
+                    this.showError('Limited to 8 images for optimal quality. First 8 images selected.');
                 }
 
                 this.updateFileList();
@@ -382,10 +446,11 @@
                     preview.src = URL.createObjectURL(file);
                     preview.onload = () => URL.revokeObjectURL(preview.src);
 
-                    // Create file name
+                    // Create file info
                     const fileName = document.createElement('div');
                     fileName.className = 'file-name';
-                    fileName.textContent = file.name;
+                    const sizeInMB = (file.size / (1024 * 1024)).toFixed(1);
+                    fileName.textContent = `${file.name} (${sizeInMB}MB)`;
 
                     // Create remove button
                     const removeButton = document.createElement('button');
@@ -411,18 +476,35 @@
                 stitchButton.disabled = this.files.length < 2;
                 
                 if (this.files.length >= 2) {
-                    stitchButton.textContent = `🔗 Create Panorama (${this.files.length} images)`;
+                    stitchButton.textContent = `🔗 Create Professional Panorama (${this.files.length} images)`;
                 } else {
-                    stitchButton.textContent = '🔗 Create Panorama (Select at least 2 images)';
+                    stitchButton.textContent = '🔗 Create Professional Panorama (Select at least 2 images)';
                 }
             }
 
             showError(message) {
                 const errorDiv = document.getElementById('errorMessage');
+                const successDiv = document.getElementById('successMessage');
+                
                 errorDiv.textContent = message;
                 errorDiv.style.display = 'block';
+                successDiv.style.display = 'none';
+                
                 setTimeout(() => {
                     errorDiv.style.display = 'none';
+                }, 8000);
+            }
+
+            showSuccess(message) {
+                const successDiv = document.getElementById('successMessage');
+                const errorDiv = document.getElementById('errorMessage');
+                
+                successDiv.textContent = message;
+                successDiv.style.display = 'block';
+                errorDiv.style.display = 'none';
+                
+                setTimeout(() => {
+                    successDiv.style.display = 'none';
                 }, 5000);
             }
 
@@ -434,13 +516,13 @@
                 progressContainer.style.display = 'block';
                 resultSection.style.display = 'none';
                 
-                // Simulate progress
+                // More realistic progress simulation
                 let progress = 0;
                 const interval = setInterval(() => {
-                    progress += Math.random() * 15;
-                    if (progress > 90) progress = 90;
+                    progress += Math.random() * 8 + 2; // 2-10% increments
+                    if (progress > 95) progress = 95;
                     progressFill.style.width = progress + '%';
-                }, 500);
+                }, 800);
 
                 return interval;
             }
@@ -455,7 +537,7 @@
                 setTimeout(() => {
                     progressContainer.style.display = 'none';
                     progressFill.style.width = '0%';
-                }, 1000);
+                }, 1500);
             }
 
             async stitchImages() {
@@ -471,14 +553,10 @@
                 const progressInterval = this.showProgress();
 
                 try {
-                    // First, test if the server is reachable
-                    const healthResponse = await fetch(`${this.apiUrl}/health`, {
-                        method: 'GET',
-                        mode: 'cors'
-                    });
-
+                    // Check server health first
+                    const healthResponse = await fetch(`${this.apiUrl}/health`);
                     if (!healthResponse.ok) {
-                        throw new Error('Backend server is not responding. Please check if the FastAPI server is running on http://localhost:8000');
+                        throw new Error('Server not responding. Please ensure FastAPI server is running.');
                     }
 
                     const formData = new FormData();
@@ -488,13 +566,12 @@
 
                     const response = await fetch(`${this.apiUrl}/stitch`, {
                         method: 'POST',
-                        mode: 'cors',
                         body: formData
                     });
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(errorData.detail || 'Stitching failed');
+                        throw new Error(errorData.detail || `Server error: ${response.status}`);
                     }
 
                     const blob = await response.blob();
@@ -502,14 +579,17 @@
 
                     this.hideProgress(progressInterval);
                     this.showResult(imageUrl);
+                    this.showSuccess('🎉 Professional panorama created successfully!');
 
                 } catch (error) {
                     this.hideProgress(progressInterval);
                     
-                    // Provide specific error messages based on error type
                     let errorMessage = error.message;
-                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                        errorMessage = '🚨 Cannot connect to server. Please make sure:\n\n1. FastAPI server is running: uvicorn main:app --reload\n2. Server is accessible at http://localhost:8000\n3. Check your firewall settings';
+                    if (error.name === 'TypeError' || errorMessage.includes('fetch')) {
+                        errorMessage = '🚨 Cannot connect to server. Please ensure:\n\n' +
+                                     '1. FastAPI server is running: uvicorn app:app --reload\n' +
+                                     '2. Server is accessible at http://localhost:8000\n' +
+                                     '3. No firewall blocking the connection';
                     }
                     
                     this.showError(errorMessage);
@@ -536,7 +616,7 @@
 
         // Initialize the application
         document.addEventListener('DOMContentLoaded', () => {
-            new PanoramaStitcher();
+            new ProfessionalPanoramaStitcher();
         });
     </script>
 </body>
