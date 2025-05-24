@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Automated Panorama Creator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #667eea;
+            background: #f0f2ff;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-button {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .file-list {
+            margin-top: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .file-item {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .file-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .file-preview {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .file-name {
+            font-size: 0.9rem;
+            color: #333;
+            word-break: break-word;
+        }
+
+        .remove-file {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stitch-button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2ed573, #1e90ff);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .stitch-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(46, 213, 115, 0.3);
+        }
+
+        .stitch-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .result-section {
+            margin-top: 30px;
+            text-align: center;
+            display: none;
+        }
+
+        .result-image {
+            max-width: 100%;
+            max-height: 600px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .download-button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+        .download-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .error-message {
+            background: #ff4757;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: none;
+            white-space: pre-line;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
+
+        .tips {
+            background: #e8f4fd;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .tips h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .tips ul {
+            color: #666;
+            padding-left: 20px;
+        }
+
+        .tips li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .file-list {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌄 Automated Panorama Creator</h1>
+            <p>Upload multiple overlapping images to create stunning panoramic views</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" multiple accept="image/*">
+                <label for="fileInput" class="file-input-button">
+                    📸 Select Images (2-10 images)
+                </label>
+            </div>
+            <div id="fileList" class="file-list"></div>
+        </div>
+
+        <button id="stitchButton" class="stitch-button" disabled>
+            🔗 Create Panorama
+        </button>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div id="progressContainer" class="progress-container">
+            <h3>Processing your panorama...</h3>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p>This may take a few moments depending on image size and count.</p>
+        </div>
+
+        <div id="resultSection" class="result-section">
+            <h2>🎉 Your Panorama is Ready!</h2>
+            <img id="resultImage" class="result-image" alt="Stitched panorama">
+            <br>
+            <a id="downloadButton" class="download-button" download="panorama.jpg">
+                💾 Download Panorama
+            </a>
+        </div>
+
+        <div class="tips">
+            <h3>💡 Tips for Best Results:</h3>
+            <ul>
+                <li>Take photos with at least 30% overlap between adjacent images</li>
+                <li>Keep the camera level and maintain consistent exposure</li>
+                <li>Avoid moving objects in the overlapping areas</li>
+                <li>Use good lighting conditions for better feature detection</li>
+                <li>Upload images in the order they were taken (left to right)</li>
+                <li>Maximum 10 images per panorama for optimal performance</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        class PanoramaStitcher {
+            constructor() {
+                this.files = [];
+                this.apiUrl = 'http://localhost:8000'; // Change this to your FastAPI server URL
+                
+                this.initEventListeners();
+            }
+
+            initEventListeners() {
+                const fileInput = document.getElementById('fileInput');
+                const stitchButton = document.getElementById('stitchButton');
+
+                fileInput.addEventListener('change', (e) => this.handleFileSelection(e));
+                stitchButton.addEventListener('click', () => this.stitchImages());
+            }
+
+            handleFileSelection(event) {
+                const newFiles = Array.from(event.target.files);
+                
+                // Add new files to existing ones (avoid duplicates)
+                newFiles.forEach(file => {
+                    if (!this.files.find(f => f.name === file.name && f.size === file.size)) {
+                        this.files.push(file);
+                    }
+                });
+
+                // Limit to 10 files
+                if (this.files.length > 10) {
+                    this.files = this.files.slice(0, 10);
+                    this.showError('Maximum 10 images allowed. Only first 10 images selected.');
+                }
+
+                this.updateFileList();
+                this.updateStitchButton();
+            }
+
+            updateFileList() {
+                const fileList = document.getElementById('fileList');
+                fileList.innerHTML = '';
+
+                this.files.forEach((file, index) => {
+                    const fileItem = document.createElement('div');
+                    fileItem.className = 'file-item';
+
+                    // Create preview
+                    const preview = document.createElement('img');
+                    preview.className = 'file-preview';
+                    preview.src = URL.createObjectURL(file);
+                    preview.onload = () => URL.revokeObjectURL(preview.src);
+
+                    // Create file name
+                    const fileName = document.createElement('div');
+                    fileName.className = 'file-name';
+                    fileName.textContent = file.name;
+
+                    // Create remove button
+                    const removeButton = document.createElement('button');
+                    removeButton.className = 'remove-file';
+                    removeButton.innerHTML = '×';
+                    removeButton.onclick = () => this.removeFile(index);
+
+                    fileItem.appendChild(preview);
+                    fileItem.appendChild(fileName);
+                    fileItem.appendChild(removeButton);
+                    fileList.appendChild(fileItem);
+                });
+            }
+
+            removeFile(index) {
+                this.files.splice(index, 1);
+                this.updateFileList();
+                this.updateStitchButton();
+            }
+
+            updateStitchButton() {
+                const stitchButton = document.getElementById('stitchButton');
+                stitchButton.disabled = this.files.length < 2;
+                
+                if (this.files.length >= 2) {
+                    stitchButton.textContent = `🔗 Create Panorama (${this.files.length} images)`;
+                } else {
+                    stitchButton.textContent = '🔗 Create Panorama (Select at least 2 images)';
+                }
+            }
+
+            showError(message) {
+                const errorDiv = document.getElementById('errorMessage');
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+                setTimeout(() => {
+                    errorDiv.style.display = 'none';
+                }, 5000);
+            }
+
+            showProgress() {
+                const progressContainer = document.getElementById('progressContainer');
+                const progressFill = document.getElementById('progressFill');
+                const resultSection = document.getElementById('resultSection');
+                
+                progressContainer.style.display = 'block';
+                resultSection.style.display = 'none';
+                
+                // Simulate progress
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress > 90) progress = 90;
+                    progressFill.style.width = progress + '%';
+                }, 500);
+
+                return interval;
+            }
+
+            hideProgress(interval) {
+                const progressContainer = document.getElementById('progressContainer');
+                const progressFill = document.getElementById('progressFill');
+                
+                clearInterval(interval);
+                progressFill.style.width = '100%';
+                
+                setTimeout(() => {
+                    progressContainer.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 1000);
+            }
+
+            async stitchImages() {
+                if (this.files.length < 2) {
+                    this.showError('Please select at least 2 images');
+                    return;
+                }
+
+                const stitchButton = document.getElementById('stitchButton');
+                stitchButton.disabled = true;
+                stitchButton.textContent = 'Processing...';
+
+                const progressInterval = this.showProgress();
+
+                try {
+                    // First, test if the server is reachable
+                    const healthResponse = await fetch(`${this.apiUrl}/health`, {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+
+                    if (!healthResponse.ok) {
+                        throw new Error('Backend server is not responding. Please check if the FastAPI server is running on http://localhost:8000');
+                    }
+
+                    const formData = new FormData();
+                    this.files.forEach(file => {
+                        formData.append('files', file);
+                    });
+
+                    const response = await fetch(`${this.apiUrl}/stitch`, {
+                        method: 'POST',
+                        mode: 'cors',
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.detail || 'Stitching failed');
+                    }
+
+                    const blob = await response.blob();
+                    const imageUrl = URL.createObjectURL(blob);
+
+                    this.hideProgress(progressInterval);
+                    this.showResult(imageUrl);
+
+                } catch (error) {
+                    this.hideProgress(progressInterval);
+                    
+                    // Provide specific error messages based on error type
+                    let errorMessage = error.message;
+                    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+                        errorMessage = '🚨 Cannot connect to server. Please make sure:\n\n1. FastAPI server is running: uvicorn main:app --reload\n2. Server is accessible at http://localhost:8000\n3. Check your firewall settings';
+                    }
+                    
+                    this.showError(errorMessage);
+                    console.error('Stitching error:', error);
+                } finally {
+                    stitchButton.disabled = false;
+                    this.updateStitchButton();
+                }
+            }
+
+            showResult(imageUrl) {
+                const resultSection = document.getElementById('resultSection');
+                const resultImage = document.getElementById('resultImage');
+                const downloadButton = document.getElementById('downloadButton');
+
+                resultImage.src = imageUrl;
+                downloadButton.href = imageUrl;
+                resultSection.style.display = 'block';
+
+                // Scroll to result
+                resultSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new PanoramaStitcher();
+        });
+    </script>
+</body>
+</html>
